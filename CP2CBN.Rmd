@@ -1,0 +1,191 @@
+---
+title: "From conditional probabilities to causal Bayesian networks"
+header-includes:
+   - \usepackage{tikz}
+output:
+  bookdown::pdf_document2: default
+  bookdown::html_document2: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+Directed acyclic graphs are becoming an increasingly popular tool to describe and analyze causal knowledge. This short primer, which is based on the first 3 chapters of Judea Pearl's book "Causality" ^[pdfs here: http://bayes.cs.ucla.edu/BOOK-2K/ch1-1.pdf, http://bayes.cs.ucla.edu/BOOK-2K/ch1-2.pdf, http://bayes.cs.ucla.edu/BOOK-2K/ch1-3.pdf] introduced some basic concepts.
+
+
+### Conditional probabilities and the chain rule {-}
+
+While causal knowledge encompasses more than associations between variables, causal knowledge is also based on knowledge about the relationship of different variables. Such relationships can be expressed in the language of probability. The axioms of probability calculus are:
+
+\begin{equation}
+0	\leq P(A) \leq 1, (\#eq:PA1)
+\end{equation}
+\begin{equation}
+P(\textrm{sure proposition}) = 1, (\#eq:PA2)
+\end{equation}
+\begin{equation}
+P(A \textrm{ or } B) = P(A) + P(B) \textrm{ if } A \textrm{ and } B \textrm{ are mutually exclusive}  (\#eq:PA3)
+\end{equation}
+
+
+In probability theory, conditional probabilities are used to express the probability of an event A (or a variable value) given knowledge about another event or value of another variable B:
+
+\begin{equation}
+P(A|B) = \frac{P(A,B)}{P(B)} (\#eq:CP)
+\end{equation}
+
+That is, the probability of A given B is equal to the joint probability of A an B divided the probability of B.
+
+By rearranging  \@ref(eq:CP) one obtains the product rule, which calculates the joint probability of A and B from knowledge about the conditional probability and the unconditional probability.
+
+\begin{equation}
+P(A,B) = P(A|B)P(B) (\#eq:PR)
+\end{equation}
+
+
+The product rule \@ref(eq:PR) can be generalized to express the joint probability of more than two events $E$.
+
+\begin{equation}
+P(E_1,E_2,...,E_n) = P(E_n|E_{n-1}, ..., E_2,E_1) ... P(E_2|E_1) (\#eq:CR)
+\end{equation}
+
+
+A probabilistic model $P(S)$ encodes information about the relationship of events (or values of variables) $S$ in a way that is consistent with the axioms of probability \@ref(eq:PA1)-\@ref(eq:PA3). That is, the sum the probabilities of all possible combinations of events must be 1.
+
+### Conditional independence {-}
+
+Even probability models with a moderately large number of event classes or variables become quickly unwieldy when all variables are mutually dependent. Probability models are simpler if some variables $X$ and $Y$ are independent given knowledge of a third variable $Z$. Using $x$, $y$ and $z$ as realizations of $X$, $Y$ and $Z$, $X$ and $Y$ are conditionally independent if 
+
+\begin{equation}
+P(x|y,z) = P(x|z) \textrm{ whenever } P(y,z) > 0 (\#eq:CI)
+\end{equation}
+
+that is, if we already know $Z$, knowledge about $Y$ will not provide any additional information about the value of $X$.
+
+
+### Directed acyclic graphs {-}
+A graph consists of a set of nodes which represent variables, that are connected by edges. 
+
+A directed graph has only directed edges, where the direction of an edges indicates the cause and effect. Bi-directed edges indicated existence of a common, unobserved causes for two nodes.
+
+A path goes from node to node by following along edges. Directed paths are special cases of paths in which each step from node to node ends in an arrow. Nodes with a path between them are connected and those without a path between them are disconnected.
+
+Graphs that contain directed paths that end in themselves (cycles) are cyclic graphs. Directed acyclic graphs are characterized by the absence of cycles.
+
+The relationship between nodes can be described with pedigree-terms. Immediate predecessors of a node in a DAG are called _parents_ and immediate successors are called _children_, parents with a common child are calles _spouses_, and a family consists of a _child_ node and its parents. The group of all node preceding a child is called _ancestors_. An exogenous node without parents, is called a _root_ and node without children a _sink_. Trees are connected DAGs in which every child has at most one parent, and if every node also has only one child it is called a chain.
+
+
+\begin{figure}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{center}
+\include{F1a}
+\end{center}
+\caption{A simple DAG}
+\end{figure}
+
+### Bayesian networks {-}
+
+Directed graphs are used to describe assumptions, to represent joint probability functions in an economical manner, and to facilitate the analysis of the former two. Given these functions, DAGs belog into the class of _bayesian networks_, a term coined to emphasize 
+
+\begin{quote}
+(1) The subjective nature of input information; (2) the reliance on Bayes' conditioning as the basis for updating information; (3) the distinction between causal and evidential modes of reasoning.
+\end{quote}
+
+Bayesian networks facilitate analysis of DAGs by using the fact that the value of a node $X_j$ is independent of all other nodes conditional on knowledge of the values of its parents $PA_j$. Without this property of _Markovian parents_, the joint distribution would need to be calculated as 
+
+\begin{equation}
+P(x_1,...,x_n) = \prod_j{P(x_j|x_1, ..., x_{j-1})} 
+\end{equation}
+
+
+with Markovian parents this simplifies to 
+
+\begin{equation}
+P(x_1,...,x_n) = \prod_j{P(x_j|pa_j)}, (\#eq:x)
+\end{equation}
+
+
+The concept of Markovian parents can also be used to draw a DAG given known conditional independencies.
+For each node $x_j$ one draws only edges from the the set of its Markovian parents $pa_j$ to $x_j$, such that a Bayesian network encodes conditional independencies. Therefore, only a DAG that allows a decomposition as in \@ref(eq:x) is a Bayesian network $G$ for a probability distribution $P$.
+
+\begin{figure}
+\begin{center}
+\include{F2}
+\end{center}
+\caption{A Bayesian network}
+\label{BN} 
+\end{figure}
+
+Using (\#eq:PMP) the probability distribution for the DAG / Bayesian network in Figure \ref{BN} can be calculated as
+
+\begin{equation}
+P(x_1,x_2,x_3,x_4,x_5) = P(x_1)P(x_2|x_1)P(x_3|x_1)P(x_4|x_2,x_3)P(x_5|x_4)
+\end{equation}
+
+### d-Separation {-}
+
+d-Separation refers to a situation in which a path between two variables $X$ and $Y$ is closed after conditioning on variable(s) $Z$.
+
+Paths are blocked when conditioning on a variable in a chain ($X \rightarrow Z \rightarrow Y$) or a fork ($X \leftarrow Z \rightarrow Y$). In contrast, a path with an inverted fork  ($X \rightarrow Z \leftarrow Y$) is already blocked, and conditioning would open that path. Synonyms for "blocking" a path are interrupting the flow of information in a graph, or rendering to previously dependent variables independent conditional on $Z$.
+
+Conditional independence $(X \indep Y|Z)_P$ and d-separation $(X \indep Y|Z)_G$ are "mirror-concepts", as the former refers to independence in a probability model $P$ and the latter to independence in a graph $G$. 
+
+### Causal Bayesian Networks {-}
+
+Whereas Bayesian Networks encode independence assumptions, they do not need to be interpreted causally. However, the above described step by step construction of variables in a graph can be see as a data-generating process, which shows why a causal interpretation of Bayesian networks is attractive and intuitive. According to Pearl,
+\begin{quote}
+conditional independence judgement are byproducts of stored causal relationships
+\end{quote}
+and therefore
+\begin{quote}
+tapping and representing those relationships directly [is] a more natural and more reliable way of expressing what we know about the world.
+\end{quote}
+
+One important advantage of Bayesian Networks is that they have a high degree of flexibility, i.e. it is easy to adapt them (compare to adapting a probability model $P$) to change causal models by adding or removing edges. This flexibility is due to the assumption that changes can be implemented locally, i.e. by considering only (_Markov_) child ($x_j$) parent ($pa_j$) pairs and by ignoring more distant ancestors and descendants (Which I think works due to the conditional independence given $PA_j$).
+
+Declaring a Bayesian Causal Network a causal model (as opposed to an observational model) opens the possibility to investigate interventions, i.e. setting variables to specific values. For instance, if one changes the the graph in Figure \ref{BN} by deleting the arrow from $X_1$ to $X_3$ and by setting the sprinkler to "on", the new probability distribution will be as follows:
+
+\begin{equation}
+P_{X_3=\textrm{On}}(x_1,x_2,x_4,x_5) = P(x_1)P(x_2|x_1)P(x_4|x_2,X_3=\textrm{On})P(x_5|x_4)
+\end{equation}
+
+Deleting the path $x_1 \rightarrow x_3$ reflects the fact that once $x_3$ is set to a specific value, it is independent of $x_1$. Setting a variable to a specific value is done with the do operator, where
+$$
+do(X=x)
+$$
+
+indicates that variable $X$ is set to a specific value $x$. Differently than _doing_, _observing_ the effect of $X = On$ involves calculating conditional probabilities from the full graph. 
+
+Of course, the new-gained ability of Causal Bayesian Networks to predict the results of interventions is not for free. The price is the assumption that paths in a DAG depict causal relationships.
+
+Formally, a DAG $G$ is a causal Bayesian network for all probability distribution $P*$ that result from interventions on a probability distribution $P(V)$ if an only if:
+
+\begin{enumerate}
+ \item $P_x(v) \textrm{ is Markov relative to } G$
+ \item $P_x(v_i)=1 \textrm{ for all } V_i \in X \textrm{ whenenver } v_i \textrm{ is consistent with } X = x$
+ \item $P_x(v_i|pa_i) = P(v_i|pa_i) textrm{ for all } V_i \notin X \textrm{ whenenver } pa_i \textrm{ is consistent with } X = x$
+\end{enumerate}
+
+if these conditions hold, the effect of an intervention $do(X=x)$ can be calculated as 
+
+\begin{equation}
+P_x(v) = \prod_{i|V_i \notin X}P(v_i|pa_i) \textrm{ for all } v \textrm{ consistent with } x
+\end{equation}
+
+From this, two things can be derived: 
+
+The conditional probability $P(v_i|pa_i)$ has the same value as the effect of setting parents to a specific value $P_{pa_i}(v_i)$. Put differently, the effect of a variable having a certain value is the same when the value was observed or when it was set.
+\begin{equation}
+P(v_i|pa_i) = P_{pa_i}(v_i)
+\end{equation}
+
+When one controls the direct causes of a child $P_{pa_i}$ other variables $s$ have no influence on a child:
+\begin{equation}
+P_{pa_i,S} = P_{pa_i}
+\end{equation}
+
+
