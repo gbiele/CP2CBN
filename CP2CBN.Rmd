@@ -2,6 +2,9 @@
 title: "From conditional probabilities to causal Bayesian networks"
 header-includes:
    - \usepackage{tikz}
+   - \usepackage{algorithm} 
+   - \usepackage{algpseudocode}
+   - \usepackage{bm}
 output:
   bookdown::pdf_document2: default
   bookdown::html_document2: default
@@ -75,46 +78,59 @@ A path goes from node to node by following along edges. Directed paths are speci
 
 Graphs that contain directed paths that end in themselves (cycles) are cyclic graphs. Directed acyclic graphs are characterized by the absence of cycles.
 
-The relationship between nodes can be described with pedigree-terms. Immediate predecessors of a node in a DAG are called _parents_ and immediate successors are called _children_, parents with a common child are calles _spouses_, and a family consists of a _child_ node and its parents. The group of all node preceding a child is called _ancestors_. An exogenous node without parents, is called a _root_ and node without children a _sink_. Trees are connected DAGs in which every child has at most one parent, and if every node also has only one child it is called a chain.
+The relationship between nodes can be described with pedigree-terms. Immediate predecessors of a node in a DAG are called _parents_ and immediate successors are called _children_, parents with a common child are called _spouses_, and a family consists of a _child_ node and its parents. The group of all node preceding a child is called _ancestors_. An exogenous node without parents, is called a _root_ and node without children a _sink_. Trees are connected DAGs in which every child has at most one parent, and if every node also has only one child it is called a chain.
 
 
 \begin{figure}
 \tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
 
 \begin{center}
-\include{F1a}
+% \include{F1a}
+\includegraphics[height=5cm]{F1}
 \end{center}
 \caption{A simple DAG}
 \end{figure}
 
 ### Bayesian networks {-}
 
-Directed graphs are used to describe assumptions, to represent joint probability functions in an economical manner, and to facilitate the analysis of the former two. Given these functions, DAGs belog into the class of _bayesian networks_, a term coined to emphasize 
+Directed graphs are used to describe assumptions, to represent joint probability functions in an economical manner, and to facilitate the analysis of the former two. Given these functions, DAGs belog into the class of _Bayesian networks_, a term coined to emphasize 
 
 \begin{quote}
 (1) The subjective nature of input information; (2) the reliance on Bayes' conditioning as the basis for updating information; (3) the distinction between causal and evidential modes of reasoning.
 \end{quote}
 
-Bayesian networks facilitate analysis of DAGs by using the fact that the value of a node $X_j$ is independent of all other nodes conditional on knowledge of the values of its parents $PA_j$. Without this property of _Markovian parents_, the joint distribution would need to be calculated as 
+Bayesian networks facilitate analysis of DAGs by using the concept of _Markovian parents_, which are defined as the group of parents $PA_j$ that render the child $X_j$ independent of all other variables in a DAG except the _Markovian parents_. Without the property of _Markovian parents_, the joint distribution would need to be calculated as 
 
 \begin{equation}
-P(x_1,...,x_n) = \prod_j{P(x_j|x_1, ..., x_{j-1})} 
+P(x_1,...,x_n) = \prod_j{P(x_j|x_1, ..., x_{j-1})} .
 \end{equation}
 
+With Markovian parents, a DAG can be constructed following the following simple algorithm:
 
-with Markovian parents this simplifies to 
+\begin{algorithm}
+	\caption{Drawing a Bayesian network with nodes $x_j$ using Markovian parents $pa_j$} 
+	\begin{algorithmic}[1]
+		\For {$x_j = 1,2,\ldots,N$}
+			\For {$x_i \in pa_j$}
+				\State draw an edge from $x_i$ to $x_j$
+			\EndFor
+		\EndFor
+	\end{algorithmic} 
+	\label{A1} 
+\end{algorithm}
+
+and the calculation of the probability distribution for a DAG simplifies to
 
 \begin{equation}
-P(x_1,...,x_n) = \prod_j{P(x_j|pa_j)}, (\#eq:x)
+P(x_1,...,x_n) = \prod_j{P(x_j|pa_j)}. (\#eq:x)
 \end{equation}
 
-
-The concept of Markovian parents can also be used to draw a DAG given known conditional independencies.
-For each node $x_j$ one draws only edges from the the set of its Markovian parents $pa_j$ to $x_j$, such that a Bayesian network encodes conditional independencies. Therefore, only a DAG that allows a decomposition as in \@ref(eq:x) is a Bayesian network $G$ for a probability distribution $P$.
+A DAG $G$ can only be a Bayesian network of a probability distribution $P$, if $P$ can be decomposed as in \@ref(eq:x). That is, it is not possible to construct a DAG that is a Bayesian network for a probability distribution $P$, if parents in $P$ are not Markovian parents^[Right now I cannot come up with an example $P$ or DAG that does not have Markovian parents. One possibility would be a fully connected network, in which a node is connected to all other nodes, so that it cannot be made independent of any parents, but then one could just add all nodes in the set $PA_j$ for this child.]. If a graph $P$ can be factorized with a function \@ref(eq:x) that was derived from a graph $G$, it is said that $G$ represents $P$, or that $G$ and $P$ are _markov relatives_ or _markov compatible_.
 
 \begin{figure}
 \begin{center}
-\include{F2}
+%\include{F2}
+\includegraphics[height=6cm]{F2}
 \end{center}
 \caption{A Bayesian network}
 \label{BN} 
@@ -123,20 +139,20 @@ For each node $x_j$ one draws only edges from the the set of its Markovian paren
 Using (\#eq:PMP) the probability distribution for the DAG / Bayesian network in Figure \ref{BN} can be calculated as
 
 \begin{equation}
-P(x_1,x_2,x_3,x_4,x_5) = P(x_1)P(x_2|x_1)P(x_3|x_1)P(x_4|x_2,x_3)P(x_5|x_4)
+P(x_1,x_2,x_3,x_4,x_5) = P(x_1)P(x_2|x_1)P(x_3|x_1)P(x_4|x_2,x_3)P(x_5|x_4) (\#eq:PF2)
 \end{equation}
 
 ### d-Separation {-}
 
 d-Separation refers to a situation in which a path between two variables $X$ and $Y$ is closed after conditioning on variable(s) $Z$.
 
-Paths are blocked when conditioning on a variable in a chain ($X \rightarrow Z \rightarrow Y$) or a fork ($X \leftarrow Z \rightarrow Y$). In contrast, a path with an inverted fork  ($X \rightarrow Z \leftarrow Y$) is already blocked, and conditioning would open that path. Synonyms for "blocking" a path are interrupting the flow of information in a graph, or rendering to previously dependent variables independent conditional on $Z$.
+Paths are blocked when conditioning on a variable (here $Z$) in a chain ($X \rightarrow Z \rightarrow Y$) or a fork ($X \leftarrow Z \rightarrow Y$). In contrast, a path with an inverted fork  ($X \rightarrow Z \leftarrow Y$) is already blocked, and conditioning would open that path. Synonyms for "blocking" a path are interrupting the flow of information in a graph, or rendering to previously dependent variables independent conditional on $Z$.
 
 Conditional independence $(X \indep Y|Z)_P$ and d-separation $(X \indep Y|Z)_G$ are "mirror-concepts", as the former refers to independence in a probability model $P$ and the latter to independence in a graph $G$. 
 
 ### Causal Bayesian Networks {-}
 
-Whereas Bayesian Networks encode independence assumptions, they do not need to be interpreted causally. However, the above described step by step construction of variables in a graph can be see as a data-generating process, which shows why a causal interpretation of Bayesian networks is attractive and intuitive. According to Pearl,
+Whereas Bayesian Networks encode independence assumptions, they do not need to be interpreted causally. However, the step by step construction of variables in a graph described in Algorithm \ref{A1} can be seen as a data-generating process, which shows why a causal interpretation of Bayesian networks is attractive and intuitive. According to Pearl,
 \begin{quote}
 conditional independence judgement are byproducts of stored causal relationships
 \end{quote}
@@ -145,24 +161,23 @@ and therefore
 tapping and representing those relationships directly [is] a more natural and more reliable way of expressing what we know about the world.
 \end{quote}
 
-One important advantage of Bayesian Networks is that they have a high degree of flexibility, i.e. it is easy to adapt them (compare to adapting a probability model $P$) to change causal models by adding or removing edges. This flexibility is due to the assumption that changes can be implemented locally, i.e. by considering only (_Markov_) child ($x_j$) parent ($pa_j$) pairs and by ignoring more distant ancestors and descendants (Which I think works due to the conditional independence given $PA_j$).
+One important advantage of Bayesian Networks is that they have a high degree of flexibility. this means that it is easy to adapt them (compared to adapting a probability model $P$) to changed causal models by adding or removing edges. This flexibility is due to the assumption that changes can be implemented locally, i.e. by considering only (_Markov_) child ($x_j$) parent ($pa_j$) pairs and by ignoring more distant ancestors and descendants (Which I think works due to the conditional independence given $PA_j$).
 
-Declaring a Bayesian Causal Network a causal model (as opposed to an observational model) opens the possibility to investigate interventions, i.e. setting variables to specific values. For instance, if one changes the the graph in Figure \ref{BN} by deleting the arrow from $X_1$ to $X_3$ and by setting the sprinkler to "on", the new probability distribution will be as follows:
+Declaring a Bayesian Causal Network a causal model (as opposed to an observational model) opens the possibility to investigate interventions, i.e. setting variables to specific values. For instance, to model a situation in which the sprinkler is always on, one changes the graph in Figure \ref{BN} by deleting the arrow from $X_1$ to $X_3$ and by setting the sprinkler to "On". The new probability distribution then will be:
 
 \begin{equation}
 P_{X_3=\textrm{On}}(x_1,x_2,x_4,x_5) = P(x_1)P(x_2|x_1)P(x_4|x_2,X_3=\textrm{On})P(x_5|x_4)
 \end{equation}
 
-Deleting the path $x_1 \rightarrow x_3$ reflects the fact that once $x_3$ is set to a specific value, it is independent of $x_1$. Setting a variable to a specific value is done with the do operator, where
+Deleting the path $X_1 \rightarrow X_3$ reflects the fact that once $X_3$ is set to a specific value, it is independent of $X_1$. Setting a variable to a specific value is done with the do operator, where
 $$
 do(X=x)
 $$
-
 indicates that variable $X$ is set to a specific value $x$. Differently than _doing_, _observing_ the effect of $X = On$ involves calculating conditional probabilities from the full graph. 
 
 Of course, the new-gained ability of Causal Bayesian Networks to predict the results of interventions is not for free. The price is the assumption that paths in a DAG depict causal relationships.
 
-Formally, a DAG $G$ is a causal Bayesian network for all probability distribution $P*$ that result from interventions on a probability distribution $P(V)$ if an only if:
+The notion of interventions plays an important role in the formal definition of _Causal Bayesian Network_. We define $P(V)$ as a probability distribution over variables $V$, $P_x(V)$ as the probability distribution for an intervention in which $do(X=x)$ sets a subset $X \subseteq V$ to $x$, and $\bm{P_*}$ as the set of possible $P_x(V)$. Then, DAG $G$ is a causal Bayesian network if an only if:
 
 \begin{enumerate}
  \item $P_x(v) \textrm{ is Markov relative to } G$
