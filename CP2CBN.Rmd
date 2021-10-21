@@ -85,8 +85,8 @@ The relationship between nodes can be described with pedigree-terms. Immediate p
 \tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
 
 \begin{center}
-% \include{F1a}
-\includegraphics[height=5cm]{F1}
+\include{F1a}
+%\includegraphics[height=5cm]{F1}
 \end{center}
 \caption{A simple DAG}
 \end{figure}
@@ -129,8 +129,8 @@ A DAG $G$ can only be a Bayesian network of a probability distribution $P$, if $
 
 \begin{figure}
 \begin{center}
-%\include{F2}
-\includegraphics[height=6cm]{F2}
+\include{F2}
+%\includegraphics[height=6cm]{F2}
 \end{center}
 \caption{A Bayesian network}
 \label{BN} 
